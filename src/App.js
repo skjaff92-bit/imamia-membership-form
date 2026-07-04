@@ -14,13 +14,21 @@ const INTERESTS = [
   { id: "welfare", label: "Community Welfare & Support Initiatives" },
 ];
 
-function Input({ label, required, hint, ...props }) {
+function Input({ label, required, ...props }) {
   return (
-    <div className="field">
-      <label>{label}{required && <span className="req"> *</span>}</label>
-      {hint && <div className="hint">{hint}</div>}
-      <input {...props} />
+    <div style={s.field}>
+      <label style={s.label}>{label}{required && <span style={s.req}> *</span>}</label>
+      <input style={s.input} {...props} />
     </div>
+  );
+}
+
+function CheckItem({ checked, onChange, children }) {
+  return (
+    <label style={{...s.checkBox, ...(checked ? s.checkBoxOn : {})}}>
+      <input type="checkbox" checked={checked} onChange={onChange} style={s.checkbox} />
+      <span style={s.checkText}>{children}</span>
+    </label>
   );
 }
 
@@ -31,11 +39,8 @@ export default function MembershipForm() {
   const [showDD, setShowDD] = useState(false);
   const [form, setForm] = useState({
     fullName: "", age: "", occupation: "", phone: "", email: "",
-    eircode: "", city: "",
-    children: [],
-    interests: [],
-    amount: "", customAmount: "",
-    accountName: "", iban: "", bic: "",
+    eircode: "", city: "", children: [], interests: [],
+    amount: "", customAmount: "", accountName: "", iban: "", bic: "",
     ddConsent1: false, ddConsent2: false, ddConsent3: false, ddConsent4: false,
     consent: false,
   });
@@ -43,11 +48,11 @@ export default function MembershipForm() {
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  const toggleInterest = (id) => {
-    set("interests", form.interests.includes(id)
+  const toggleInterest = (id) => set("interests",
+    form.interests.includes(id)
       ? form.interests.filter(i => i !== id)
-      : [...form.interests, id]);
-  };
+      : [...form.interests, id]
+  );
 
   const updateChild = (idx, field, val) => {
     const updated = [...form.children];
@@ -63,7 +68,7 @@ export default function MembershipForm() {
     if (!form.fullName.trim()) e.fullName = "Full name is required";
     if (!form.phone.trim()) e.phone = "Phone number is required";
     if (!form.email.trim()) e.email = "Email is required";
-    if (!form.consent) e.consent = "Please confirm your consent to proceed";
+    if (!form.consent) e.consent = "Please confirm your consent";
     if (showDD) {
       if (!form.ddConsent1) e.ddConsent1 = "Required";
       if (!form.ddConsent2) e.ddConsent2 = "Required";
@@ -75,19 +80,22 @@ export default function MembershipForm() {
   };
 
   const handleSubmit = async () => {
-    if (!validate()) return;
+    if (!validate()) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
     setSubmitting(true);
     setSubmitError("");
 
     const childrenText = form.children.length > 0
-      ? form.children.map((c, i) => "Child " + (i+1) + ": " + (c.name||"—") + ", Age: " + (c.age||"—")).join(" | ")
+      ? form.children.map((c, i) => `Child ${i+1}: ${c.name||"—"}, Age: ${c.age||"—"}`).join(" | ")
       : "None";
 
     const interestsText = form.interests.length > 0
       ? form.interests.map(id => INTERESTS.find(i => i.id === id)?.label).join(", ")
       : "None selected";
 
-    const finalAmount = form.amount === "Custom" ? ("€" + form.customAmount) : form.amount;
+    const finalAmount = form.amount === "Custom" ? `€${form.customAmount}` : form.amount;
 
     const payload = {
       "Full Name": form.fullName,
@@ -104,7 +112,7 @@ export default function MembershipForm() {
       "Account Name": showDD ? (form.accountName || "—") : "N/A",
       "IBAN": showDD ? (form.iban || "—") : "N/A",
       "BIC": showDD ? (form.bic || "—") : "N/A",
-      "_subject": "New Membership Registration — " + form.fullName,
+      "_subject": `New Membership Registration — ${form.fullName}`,
       "_replyto": form.email,
     };
 
@@ -128,159 +136,167 @@ export default function MembershipForm() {
     }
   };
 
-  const err = (k) => errors[k] ? <div className="err-msg">{errors[k]}</div> : null;
+  const Err = ({ k }) => errors[k]
+    ? <div style={s.errMsg}>{errors[k]}</div>
+    : null;
+
+  const SectionTitle = ({ children }) => (
+    <div style={s.sectionTitle}>{children}</div>
+  );
+
+  const Divider = () => <div style={s.divider} />;
 
   if (submitted) {
     return (
-      <div className="wrap">
-        <style>{css}</style>
-        <div className="header-banner">
-          <img src={logo} alt="Imamia Centre Galway" className="header-logo" />
-          <div className="header-text">
-            <div className="bismillah">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْم</div>
-            <h1>Imamia Centre Galway</h1>
-            <p>Membership Registration Form</p>
-          </div>
-        </div>
-        <div className="card">
-          <div className="success-icon">✓</div>
-          <h2 style={{textAlign:"center",marginBottom:12}}>Registration Received</h2>
-          <p style={{textAlign:"center",color:"#555",lineHeight:1.6}}>JazakAllah Khair, <strong>{form.fullName}</strong>. Your membership application has been submitted successfully.</p>
-          <p style={{textAlign:"center",color:"#999",fontSize:13,marginTop:12}}>We will be in touch shortly. Ya Ali Madad 🖤</p>
+      <div style={s.wrap}>
+        <GlobalStyles />
+        <Header />
+        <div style={s.card}>
+          <div style={s.successIcon}>✓</div>
+          <h2 style={s.successH2}>Registration Received</h2>
+          <p style={s.successP}>JazakAllah Khair, <strong>{form.fullName}</strong>. Your membership application has been submitted successfully.</p>
+          <p style={s.successSub}>We will be in touch shortly. Ya Ali Madad 🖤</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="wrap">
-      <style>{css}</style>
+    <div style={s.wrap}>
+      <GlobalStyles />
+      <Header />
+      <div style={s.card}>
 
-      <div className="header-banner">
-        <img src={logo} alt="Imamia Centre Galway" className="header-logo" />
-        <div className="header-text">
-          <div className="bismillah">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْم</div>
-          <h1>Imamia Centre Galway</h1>
-          <p>Membership Registration Form</p>
-          <p className="header-sub">Unit 27 Kilkerrin Park, Liosban, Galway · H91 HC3Y</p>
-        </div>
-      </div>
-
-      <div className="card">
-
-        <div className="section-title">Personal Information</div>
+        <SectionTitle>Personal Information</SectionTitle>
 
         <Input label="Full Name" required placeholder="e.g. Ali Hassan"
           value={form.fullName} onChange={e => set("fullName", e.target.value)}
-          autoComplete="name" />
-        {err("fullName")}
+          autoComplete="name" autoCapitalize="words" />
+        <Err k="fullName" />
 
         <Input label="Email Address" required type="email" placeholder="name@email.com"
           value={form.email} onChange={e => set("email", e.target.value)}
-          autoComplete="email" inputMode="email" />
-        {err("email")}
+          autoComplete="email" inputMode="email" autoCapitalize="none" />
+        <Err k="email" />
 
         <Input label="Phone Number" required type="tel" placeholder="+353 87 000 0000"
           value={form.phone} onChange={e => set("phone", e.target.value)}
           autoComplete="tel" inputMode="tel" />
-        {err("phone")}
+        <Err k="phone" />
 
-        <div className="grid-2">
-          <Input label="Age" type="number" min="1" max="120" placeholder="e.g. 34"
-            value={form.age} onChange={e => set("age", e.target.value)}
-            inputMode="numeric" />
-          <Input label="Occupation" placeholder="e.g. Engineer"
-            value={form.occupation} onChange={e => set("occupation", e.target.value)} />
+        <div style={s.row}>
+          <div style={{flex:1}}>
+            <Input label="Age" type="number" min="1" max="120" placeholder="e.g. 34"
+              value={form.age} onChange={e => set("age", e.target.value)}
+              inputMode="numeric" />
+          </div>
+          <div style={{width:12}} />
+          <div style={{flex:2}}>
+            <Input label="Occupation" placeholder="e.g. Engineer"
+              value={form.occupation} onChange={e => set("occupation", e.target.value)}
+              autoCapitalize="words" />
+          </div>
         </div>
 
-        <div className="grid-2">
-          <Input label="City / Town" placeholder="Galway"
-            value={form.city} onChange={e => set("city", e.target.value)} />
-          <Input label="Eircode" placeholder="H91 XXXX"
-            value={form.eircode} onChange={e => set("eircode", e.target.value)}
-            autoCapitalize="characters" />
+        <div style={s.row}>
+          <div style={{flex:1}}>
+            <Input label="City / Town" placeholder="Galway"
+              value={form.city} onChange={e => set("city", e.target.value)}
+              autoCapitalize="words" />
+          </div>
+          <div style={{width:12}} />
+          <div style={{flex:1}}>
+            <Input label="Eircode" placeholder="H91 XXXX"
+              value={form.eircode} onChange={e => set("eircode", e.target.value)}
+              autoCapitalize="characters" autoCorrect="off" />
+          </div>
         </div>
 
-        <div className="divider" />
+        <Divider />
 
-        <div className="section-title">Children <span className="optional-tag">optional</span></div>
+        <SectionTitle>Children <span style={s.optional}>optional</span></SectionTitle>
+
         {form.children.map((c, i) => (
-          <div className="child-row" key={i}>
-            <div className="field" style={{marginBottom:0}}>
-              <label style={{fontSize:13,color:"#666"}}>Child {i+1} Name</label>
-              <input placeholder="Name" value={c.name}
-                onChange={e => updateChild(i,"name",e.target.value)} />
+          <div key={i} style={s.childRow}>
+            <div style={{flex:2}}>
+              <div style={s.field}>
+                <label style={s.labelSm}>Child {i+1} Name</label>
+                <input style={s.input} placeholder="Name" value={c.name}
+                  onChange={e => updateChild(i,"name",e.target.value)}
+                  autoCapitalize="words" />
+              </div>
             </div>
-            <div className="field" style={{marginBottom:0}}>
-              <label style={{fontSize:13,color:"#666"}}>Age</label>
-              <input type="number" min="0" max="18" placeholder="Age" value={c.age}
-                onChange={e => updateChild(i,"age",e.target.value)} inputMode="numeric" />
+            <div style={{width:10}} />
+            <div style={{flex:1}}>
+              <div style={s.field}>
+                <label style={s.labelSm}>Age</label>
+                <input style={s.input} type="number" min="0" max="18" placeholder="Age"
+                  value={c.age} onChange={e => updateChild(i,"age",e.target.value)}
+                  inputMode="numeric" />
+              </div>
             </div>
-            <button className="btn-remove" onClick={() => removeChild(i)}>×</button>
+            <div style={{width:10}} />
+            <button style={s.removeBtn} onClick={() => removeChild(i)}>×</button>
           </div>
         ))}
-        <button className="btn-add" onClick={addChild}>+ Add Child</button>
+        <button style={s.addBtn} onClick={addChild}>+ Add Child</button>
 
-        <div className="divider" />
+        <Divider />
 
-        <div className="section-title">Community Interests <span className="optional-tag">optional</span></div>
-        <p style={{fontSize:14,color:"#666",marginBottom:16,lineHeight:1.6}}>
-          Tick any programmes you would like to be involved in or notified about.
-        </p>
-        <div className="interests-grid">
-          {INTERESTS.map(item => (
-            <label key={item.id}
-              className={"interest-item" + (form.interests.includes(item.id) ? " checked" : "")}>
-              <input type="checkbox" checked={form.interests.includes(item.id)}
-                onChange={() => toggleInterest(item.id)} />
-              <span>{item.label}</span>
-            </label>
-          ))}
-        </div>
+        <SectionTitle>Community Interests <span style={s.optional}>optional</span></SectionTitle>
+        <p style={s.subText}>Tick any programmes you'd like to be involved in or notified about.</p>
 
-        <div className="divider" />
+        {INTERESTS.map(item => (
+          <CheckItem key={item.id}
+            checked={form.interests.includes(item.id)}
+            onChange={() => toggleInterest(item.id)}>
+            {item.label}
+          </CheckItem>
+        ))}
 
-        <label className="dd-toggle">
-          <input type="checkbox" checked={showDD} onChange={e => setShowDD(e.target.checked)} />
+        <Divider />
+
+        <CheckItem checked={showDD} onChange={e => setShowDD(e.target.checked)}>
           <div>
-            <div className="dd-toggle-title">I wish to support Imamia Centre through monthly membership</div>
-            <div className="dd-toggle-sub">Tick to set up a voluntary monthly direct debit contribution</div>
+            <div style={s.ddToggleTitle}>I wish to support Imamia Centre through monthly membership</div>
+            <div style={s.ddToggleSub}>Tap to set up a voluntary monthly direct debit</div>
           </div>
-        </label>
+        </CheckItem>
 
         {showDD && (
-          <div className="dd-box">
-            <h3>Monthly Direct Debit</h3>
-            <p>Please select your preferred monthly contribution amount.</p>
+          <div style={s.ddBox}>
+            <div style={{...s.sectionTitle, marginBottom:8}}>Monthly Direct Debit</div>
+            <p style={s.ddDesc}>Select your preferred monthly contribution.</p>
 
-            <div className="amount-options">
+            <div style={s.amountRow}>
               {["€50","€100","€200","Custom"].map(a => (
-                <button key={a} className={"amount-btn" + (form.amount===a?" selected":"")}
+                <button key={a}
+                  style={{...s.amountBtn, ...(form.amount===a ? s.amountBtnOn : {})}}
                   onClick={() => set("amount", a)}>{a}</button>
               ))}
             </div>
 
             {form.amount === "Custom" && (
-              <Input label="Custom Monthly Amount (€)" type="number" placeholder="e.g. 75"
+              <Input label="Custom Amount (€/month)" type="number" placeholder="e.g. 75"
                 value={form.customAmount} onChange={e => set("customAmount", e.target.value)}
                 inputMode="numeric" />
             )}
 
-            <div className="divider" style={{margin:"16px 0"}} />
-            <div className="section-title" style={{fontSize:12,marginBottom:12}}>Bank Details</div>
+            <Divider />
+            <div style={{...s.sectionTitle, marginBottom:12}}>Bank Details</div>
 
             <Input label="Account Name" placeholder="Name on bank account"
               value={form.accountName} onChange={e => set("accountName", e.target.value)}
-              autoComplete="name" />
+              autoComplete="name" autoCapitalize="words" />
             <Input label="IBAN" placeholder="IE00 XXXX 0000 0000 0000 00"
               value={form.iban} onChange={e => set("iban", e.target.value)}
-              autoCapitalize="characters" />
+              autoCapitalize="characters" autoCorrect="off" autoComplete="off" />
             <Input label="BIC" placeholder="e.g. AIBKIE2D"
               value={form.bic} onChange={e => set("bic", e.target.value)}
-              autoCapitalize="characters" />
+              autoCapitalize="characters" autoCorrect="off" autoComplete="off" />
 
-            <div className="divider" style={{margin:"16px 0"}} />
-            <div className="section-title" style={{fontSize:12,marginBottom:12}}>Direct Debit Declarations</div>
+            <Divider />
+            <div style={{...s.sectionTitle, marginBottom:12}}>Direct Debit Declarations</div>
 
             {[
               { key: "ddConsent1", text: "I understand the monthly payment will continue until I cancel or change it in writing." },
@@ -289,145 +305,310 @@ export default function MembershipForm() {
               { key: "ddConsent4", text: "I authorise Imamia Centre Galway to collect the above monthly amount from my account." },
             ].map(({ key, text }) => (
               <div key={key}>
-                <label className="consent-box" style={{marginBottom:8}}>
-                  <input type="checkbox" checked={form[key]}
-                    onChange={e => set(key, e.target.checked)} />
-                  <span>{text}</span>
-                </label>
-                {err(key)}
+                <CheckItem checked={form[key]} onChange={e => set(key, e.target.checked)}>
+                  {text}
+                </CheckItem>
+                <Err k={key} />
               </div>
             ))}
 
-            <p style={{fontSize:12,color:"#aaa",marginTop:8,lineHeight:1.5}}>
-              🔒 Your bank details are used solely to set up your voluntary standing order and will not be shared with any third parties.
-            </p>
+            <p style={s.secNote}>🔒 Your bank details are used solely for your standing order and will not be shared with third parties.</p>
           </div>
         )}
 
-        <div className="divider" />
+        <Divider />
 
-        <div className="section-title">Declaration & Consent</div>
-        <label className="consent-box">
-          <input type="checkbox" checked={form.consent}
-            onChange={e => set("consent", e.target.checked)} />
-          <span>
-            I confirm the information provided is accurate and I consent to Imamia Centre Galway
-            storing my details for membership and community communication purposes.
-            I understand my data will not be shared with third parties.
-          </span>
-        </label>
-        {err("consent")}
+        <SectionTitle>Declaration & Consent</SectionTitle>
+        <CheckItem checked={form.consent} onChange={e => set("consent", e.target.checked)}>
+          I confirm the information provided is accurate and I consent to Imamia Centre Galway
+          storing my details for membership and community communication purposes.
+          I understand my data will not be shared with third parties.
+        </CheckItem>
+        <Err k="consent" />
 
         {submitError && (
-          <div style={{background:"#fee",border:"1px solid #fcc",borderRadius:8,
-            padding:"14px 16px",fontSize:14,color:"#c0392b",marginBottom:16,lineHeight:1.5}}>
-            ⚠️ {submitError}
-          </div>
+          <div style={s.errorBox}>⚠️ {submitError}</div>
         )}
 
-        <button className="btn-submit" onClick={handleSubmit} disabled={submitting}>
+        <button style={{...s.submitBtn, ...(submitting ? s.submitBtnDisabled : {})}}
+          onClick={handleSubmit} disabled={submitting}>
           {submitting ? "Submitting…" : "Submit Registration ✓"}
         </button>
 
       </div>
 
-      <p style={{fontSize:12,color:"#aaa",marginTop:16,textAlign:"center",padding:"0 16px"}}>
+      <p style={s.footer}>
         Imamia Centre Galway · Unit 27 Kilkerrin Park, Liosban · H91 HC3Y · Ya Ali Madad 🖤
       </p>
     </div>
   );
 }
 
-const css = `
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html { font-size: 16px; }
-  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #f0eeeb; -webkit-font-smoothing: antialiased; }
-  .wrap { min-height: 100vh; background: #f0eeeb; display: flex; flex-direction: column; align-items: center; padding: 0 0 60px; }
+function Header() {
+  return (
+    <div style={s.header}>
+      <img src={logo} alt="Imamia Centre Galway" style={s.headerLogo} />
+      <div style={s.headerText}>
+        <div style={s.bismillah}>بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْم</div>
+        <div style={s.headerTitle}>Imamia Centre Galway</div>
+        <div style={s.headerSub}>Membership Registration</div>
+      </div>
+    </div>
+  );
+}
 
-  .header-banner { width: 100%; max-width: 680px; background: linear-gradient(135deg, #6B0000 0%, #8B1A1A 50%, #7A0E0E 100%); color: white; border-radius: 0 0 14px 14px; padding: 24px 20px; display: flex; align-items: center; gap: 16px; box-shadow: 0 4px 24px rgba(139,0,0,0.25); }
-  .header-logo { width: 70px; height: 70px; object-fit: contain; flex-shrink: 0; background: white; border-radius: 50%; padding: 7px; }
-  .header-text { flex: 1; min-width: 0; }
-  .bismillah { font-size: 18px; color: #f5c842; margin-bottom: 4px; font-family: serif; }
-  .header-banner h1 { font-size: 17px; font-weight: 700; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .header-banner p { font-size: 13px; opacity: 0.85; }
-  .header-sub { opacity: 0.6 !important; font-size: 11px !important; margin-top: 2px; }
+function GlobalStyles() {
+  return (
+    <style>{`
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+      html { font-size: 16px; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f0eeeb; -webkit-font-smoothing: antialiased; overscroll-behavior: none; }
+      input, button, select, textarea { font-family: inherit; }
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    `}</style>
+  );
+}
 
-  .card { width: 100%; max-width: 680px; background: white; border-radius: 14px; padding: 24px 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.07); margin-top: 16px; }
+const MAROON = "#8B0000";
+const MAROON_DARK = "#6B0000";
+const MAROON_LIGHT = "#fff5f5";
+const BORDER = "#e0e0e0";
 
-  .success-icon { width: 70px; height: 70px; background: linear-gradient(135deg,#6B0000,#8B1A1A); color: white; border-radius: 50%; font-size: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+const s = {
+  wrap: {
+    minHeight: "100vh",
+    background: "#f0eeeb",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    paddingBottom: 48,
+  },
+  header: {
+    width: "100%",
+    maxWidth: 600,
+    background: `linear-gradient(135deg, ${MAROON_DARK} 0%, #8B1A1A 60%, #7A0E0E 100%)`,
+    color: "white",
+    padding: "20px 20px 18px",
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+    boxShadow: "0 3px 16px rgba(107,0,0,0.3)",
+  },
+  headerLogo: {
+    width: 62,
+    height: 62,
+    objectFit: "contain",
+    flexShrink: 0,
+    background: "white",
+    borderRadius: "50%",
+    padding: 6,
+  },
+  headerText: { flex: 1, minWidth: 0 },
+  bismillah: { fontSize: 17, color: "#f5c842", marginBottom: 3, fontFamily: "serif" },
+  headerTitle: { fontSize: 16, fontWeight: 700, color: "white", marginBottom: 1 },
+  headerSub: { fontSize: 13, color: "rgba(255,255,255,0.8)" },
 
-  .section-title { font-size: 12px; font-weight: 700; color: #8B0000; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #f0d8d8; }
-  .optional-tag { font-size: 11px; font-weight: 400; color: #bbb; margin-left: 4px; text-transform: none; letter-spacing: 0; }
+  card: {
+    width: "100%",
+    maxWidth: 600,
+    background: "white",
+    padding: "24px 18px",
+    boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+    marginTop: 12,
+    borderRadius: 12,
+    marginLeft: 12,
+    marginRight: 12,
+  },
 
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: MAROON,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginBottom: 16,
+    paddingBottom: 8,
+    borderBottom: `2px solid #f0d8d8`,
+  },
+  optional: {
+    fontSize: 10,
+    fontWeight: 400,
+    color: "#bbb",
+    marginLeft: 4,
+    textTransform: "none",
+    letterSpacing: 0,
+  },
 
-  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-  .field label { font-size: 14px; font-weight: 600; color: #333; }
-  .hint { font-size: 12px; color: #aaa; }
-  .req { color: #8B0000; }
+  field: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 },
+  label: { fontSize: 15, fontWeight: 600, color: "#222" },
+  labelSm: { fontSize: 13, fontWeight: 600, color: "#555" },
+  req: { color: MAROON },
+  input: {
+    border: `1.5px solid ${BORDER}`,
+    borderRadius: 10,
+    padding: "14px 14px",
+    fontSize: 16,
+    color: "#1a1a1a",
+    background: "#fafafa",
+    width: "100%",
+    WebkitAppearance: "none",
+    appearance: "none",
+    outline: "none",
+  },
 
-  input[type=text], input[type=email], input[type=tel], input[type=number] {
-    border: 1.5px solid #ddd;
-    border-radius: 10px;
-    padding: 13px 14px;
-    font-size: 16px;
-    color: #1a1a1a;
-    background: #fafafa;
-    width: 100%;
-    font-family: inherit;
-    transition: border 0.15s;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-  input[type=text]:focus, input[type=email]:focus, input[type=tel]:focus, input[type=number]:focus {
-    outline: none; border-color: #8B0000; background: white;
-  }
+  row: { display: "flex", alignItems: "flex-start" },
 
-  .err-msg { font-size: 12px; color: #c0392b; margin-top: 2px; margin-bottom: 6px; }
+  errMsg: { fontSize: 13, color: "#c0392b", marginTop: -10, marginBottom: 12 },
 
-  .child-row { display: grid; grid-template-columns: 1fr 90px 44px; gap: 10px; align-items: end; margin-bottom: 12px; }
-  .btn-remove { background: #fee; border: 1px solid #fcc; color: #c0392b; border-radius: 10px; width: 44px; height: 48px; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .btn-add { background: white; border: 1.5px dashed #8B0000; color: #8B0000; border-radius: 10px; padding: 13px 16px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 4px; }
+  childRow: { display: "flex", alignItems: "flex-end", marginBottom: 10 },
+  removeBtn: {
+    background: "#fee",
+    border: "1px solid #fcc",
+    color: "#c0392b",
+    borderRadius: 10,
+    width: 48,
+    height: 52,
+    cursor: "pointer",
+    fontSize: 22,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    marginBottom: 16,
+    WebkitAppearance: "none",
+  },
+  addBtn: {
+    background: "white",
+    border: `1.5px dashed ${MAROON}`,
+    color: MAROON,
+    borderRadius: 10,
+    padding: "14px 16px",
+    fontSize: 15,
+    fontWeight: 600,
+    cursor: "pointer",
+    width: "100%",
+    marginBottom: 4,
+    WebkitAppearance: "none",
+  },
 
-  .interests-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
-  .interest-item { display: flex; align-items: flex-start; gap: 12px; background: #fafafa; border: 1.5px solid #eee; border-radius: 10px; padding: 14px 12px; cursor: pointer; transition: all 0.15s; min-height: 56px; }
-  .interest-item.checked { background: #fff5f5; border-color: #8B0000; }
-  .interest-item input[type=checkbox] { width: 20px; height: 20px; margin-top: 1px; flex-shrink: 0; accent-color: #8B0000; cursor: pointer; }
-  .interest-item span { font-size: 13px; color: #333; line-height: 1.4; }
+  subText: { fontSize: 14, color: "#666", marginBottom: 14, lineHeight: 1.5 },
 
-  .dd-toggle { display: flex; align-items: flex-start; gap: 14px; background: #fff8f8; border: 2px solid #8B0000; border-radius: 12px; padding: 16px; cursor: pointer; margin-bottom: 16px; min-height: 64px; }
-  .dd-toggle input[type=checkbox] { width: 22px; height: 22px; margin-top: 2px; flex-shrink: 0; accent-color: #8B0000; cursor: pointer; }
-  .dd-toggle-title { font-size: 15px; font-weight: 700; color: #8B0000; margin-bottom: 3px; line-height: 1.3; }
-  .dd-toggle-sub { font-size: 12px; color: #888; line-height: 1.4; }
+  checkBox: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 14,
+    background: "#fafafa",
+    border: `1.5px solid ${BORDER}`,
+    borderRadius: 10,
+    padding: "14px 14px",
+    marginBottom: 10,
+    cursor: "pointer",
+  },
+  checkBoxOn: {
+    background: MAROON_LIGHT,
+    borderColor: MAROON,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    flexShrink: 0,
+    marginTop: 1,
+    accentColor: MAROON,
+    cursor: "pointer",
+  },
+  checkText: { fontSize: 15, color: "#333", lineHeight: 1.5 },
 
-  .dd-box { background: #fdf7f7; border: 1.5px solid #f0d0d0; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-  .dd-box h3 { font-size: 15px; font-weight: 700; color: #8B0000; margin-bottom: 6px; }
-  .dd-box p { font-size: 13px; color: #777; margin-bottom: 16px; line-height: 1.5; }
+  ddToggleTitle: { fontSize: 15, fontWeight: 700, color: MAROON, marginBottom: 3 },
+  ddToggleSub: { fontSize: 13, color: "#888", lineHeight: 1.4 },
 
-  .amount-options { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
-  .amount-btn { border: 1.5px solid #ddd; background: white; border-radius: 10px; padding: 13px 22px; font-size: 16px; font-weight: 600; cursor: pointer; color: #333; transition: all 0.15s; min-width: 70px; text-align: center; -webkit-appearance: none; }
-  .amount-btn.selected { border-color: #8B0000; background: #8B0000; color: white; }
+  ddBox: {
+    background: "#fdf7f7",
+    border: `1.5px solid #f0d0d0`,
+    borderRadius: 12,
+    padding: 18,
+    marginBottom: 16,
+    marginTop: 4,
+  },
+  ddDesc: { fontSize: 13, color: "#777", marginBottom: 14, lineHeight: 1.5 },
 
-  .consent-box { display: flex; align-items: flex-start; gap: 14px; background: #f9f9f9; border: 1.5px solid #eee; border-radius: 12px; padding: 16px; margin-bottom: 16px; cursor: pointer; }
-  .consent-box input { width: 22px; height: 22px; flex-shrink: 0; accent-color: #8B0000; margin-top: 2px; }
-  .consent-box span { font-size: 14px; color: #444; line-height: 1.6; }
+  amountRow: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 },
+  amountBtn: {
+    border: `1.5px solid ${BORDER}`,
+    background: "white",
+    borderRadius: 10,
+    padding: "13px 0",
+    fontSize: 16,
+    fontWeight: 600,
+    cursor: "pointer",
+    color: "#333",
+    flex: 1,
+    minWidth: 60,
+    WebkitAppearance: "none",
+    textAlign: "center",
+  },
+  amountBtnOn: {
+    borderColor: MAROON,
+    background: MAROON,
+    color: "white",
+  },
 
-  .divider { height: 1px; background: #f0f0f0; margin: 20px 0; }
+  secNote: { fontSize: 12, color: "#aaa", marginTop: 10, lineHeight: 1.5 },
 
-  .btn-submit { background: linear-gradient(135deg,#6B0000,#8B1A1A); border: none; color: white; border-radius: 12px; padding: 16px 32px; font-size: 16px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 8px; transition: opacity 0.15s; -webkit-appearance: none; letter-spacing: 0.3px; }
-  .btn-submit:hover { opacity: 0.9; }
-  .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+  divider: { height: 1, background: "#f0f0f0", margin: "20px 0" },
 
-  @media (max-width: 600px) {
-    .wrap { padding-bottom: 40px; }
-    .header-banner { border-radius: 0; padding: 20px 16px; }
-    .card { border-radius: 12px; padding: 20px 16px; margin: 12px 12px 0; width: auto; }
-    .grid-2 { grid-template-columns: 1fr; gap: 0; }
-    .interests-grid { grid-template-columns: 1fr; }
-    .amount-options { gap: 8px; }
-    .amount-btn { flex: 1; padding: 13px 10px; font-size: 15px; }
-    .child-row { grid-template-columns: 1fr 80px 44px; }
-    .header-banner h1 { font-size: 16px; }
-    .bismillah { font-size: 17px; }
-  }
-`;
+  errorBox: {
+    background: "#fee",
+    border: "1px solid #fcc",
+    borderRadius: 10,
+    padding: "14px 16px",
+    fontSize: 14,
+    color: "#c0392b",
+    marginBottom: 16,
+    lineHeight: 1.5,
+  },
+
+  submitBtn: {
+    background: `linear-gradient(135deg, ${MAROON_DARK}, #8B1A1A)`,
+    border: "none",
+    color: "white",
+    borderRadius: 12,
+    padding: "16px 32px",
+    fontSize: 17,
+    fontWeight: 700,
+    cursor: "pointer",
+    width: "100%",
+    marginTop: 8,
+    WebkitAppearance: "none",
+    letterSpacing: 0.3,
+  },
+  submitBtnDisabled: {
+    background: "#ccc",
+    cursor: "not-allowed",
+  },
+
+  successIcon: {
+    width: 72,
+    height: 72,
+    background: `linear-gradient(135deg, ${MAROON_DARK}, #8B1A1A)`,
+    color: "white",
+    borderRadius: "50%",
+    fontSize: 32,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "0 auto 20px",
+  },
+  successH2: { textAlign: "center", fontSize: 22, marginBottom: 12, color: "#1a1a1a" },
+  successP: { textAlign: "center", color: "#555", lineHeight: 1.6, fontSize: 15 },
+  successSub: { textAlign: "center", color: "#999", fontSize: 13, marginTop: 12 },
+
+  footer: {
+    fontSize: 12,
+    color: "#aaa",
+    marginTop: 20,
+    textAlign: "center",
+    padding: "0 20px",
+    lineHeight: 1.6,
+  },
+};
