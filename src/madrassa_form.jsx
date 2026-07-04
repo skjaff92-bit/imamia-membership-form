@@ -253,6 +253,11 @@ export default function MadrassaForm() {
           <div style={s.errorBox}>⚠️ {submitError}</div>
         )}
 
+        <p style={{fontSize:13,color:"#888",textAlign:"center",marginTop:8,marginBottom:4,lineHeight:1.6}}>
+          By submitting you agree to our{" "}
+          <a href="/privacy" style={{color:MAROON,fontWeight:600,textDecoration:"none"}}>Privacy Policy</a>.
+          Your data is handled in accordance with GDPR.
+        </p>
         <button
           style={{...s.submitBtn, ...(submitting ? s.submitBtnDisabled : {})}}
           onClick={handleSubmit} disabled={submitting}>
@@ -351,4 +356,3 @@ const s = {
 
   footer: { fontSize: 12, color: "#aaa", marginTop: 20, textAlign: "center", padding: "0 20px", lineHeight: 1.6 },
 };
-

@@ -330,6 +330,11 @@ export default function MembershipForm() {
           <div style={s.errorBox}>⚠️ {submitError}</div>
         )}
 
+        <p style={{fontSize:13,color:"#888",textAlign:"center",marginTop:8,marginBottom:4,lineHeight:1.6}}>
+          By submitting you agree to our{" "}
+          <a href="/privacy" style={{color:MAROON,fontWeight:600,textDecoration:"none"}}>Privacy Policy</a>.
+          Your data is handled in accordance with GDPR.
+        </p>
         <button style={{...s.submitBtn, ...(submitting ? s.submitBtnDisabled : {})}}
           onClick={handleSubmit} disabled={submitting}>
           {submitting ? "Submitting…" : "Submit Registration ✓"}
@@ -612,4 +617,3 @@ const s = {
     lineHeight: 1.6,
   },
 };
-
