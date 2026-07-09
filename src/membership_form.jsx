@@ -36,7 +36,6 @@ export default function MembershipForm() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [showDD, setShowDD] = useState(false);
   const [form, setForm] = useState({
     fullName: "", age: "", occupation: "", phone: "", email: "",
     eircode: "", city: "", children: [], interests: [],
@@ -69,12 +68,10 @@ export default function MembershipForm() {
     if (!form.phone.trim()) e.phone = "Phone number is required";
     if (!form.email.trim()) e.email = "Email is required";
     if (!form.consent) e.consent = "Please confirm your consent";
-    if (showDD) {
-      if (!form.ddConsent1) e.ddConsent1 = "Required";
-      if (!form.ddConsent2) e.ddConsent2 = "Required";
-      if (!form.ddConsent3) e.ddConsent3 = "Required";
-      if (!form.ddConsent4) e.ddConsent4 = "Required";
-    }
+    if (!form.ddConsent1) e.ddConsent1 = "Required";
+    if (!form.ddConsent2) e.ddConsent2 = "Required";
+    if (!form.ddConsent3) e.ddConsent3 = "Required";
+    if (!form.ddConsent4) e.ddConsent4 = "Required";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -107,11 +104,11 @@ export default function MembershipForm() {
       "Eircode": form.eircode || "—",
       "Children": childrenText,
       "Community Interests": interestsText,
-      "Monthly Direct Debit": showDD ? "Yes" : "No",
-      "Amount": showDD ? (finalAmount || "Not specified") : "N/A",
-      "Account Name": showDD ? (form.accountName || "—") : "N/A",
-      "IBAN": showDD ? (form.iban || "—") : "N/A",
-      "BIC": showDD ? (form.bic || "—") : "N/A",
+      "Monthly Direct Debit": "Yes",
+      "Amount": finalAmount || "Not specified",
+      "Account Name": form.accountName || "—",
+      "IBAN": form.iban || "—",
+      "BIC": form.bic || "—",
       "_subject": `New Membership Registration — ${form.fullName}`,
       "_replyto": form.email,
     };
@@ -256,65 +253,54 @@ export default function MembershipForm() {
 
         <Divider />
 
-        <CheckItem checked={showDD} onChange={e => setShowDD(e.target.checked)}>
-          <div>
-            <div style={s.ddToggleTitle}>I wish to support Imamia Centre through monthly membership</div>
-            <div style={s.ddToggleSub}>Tap to set up a voluntary monthly direct debit</div>
-          </div>
-        </CheckItem>
+        <SectionTitle>Monthly Contribution</SectionTitle>
+        <p style={s.ddDesc}>Select your preferred monthly contribution amount.</p>
 
-        {showDD && (
-          <div style={s.ddBox}>
-            <div style={{...s.sectionTitle, marginBottom:8}}>Monthly Direct Debit</div>
-            <p style={s.ddDesc}>Select your preferred monthly contribution.</p>
+        <div style={s.amountRow}>
+          {["€50","€100","€200","Custom"].map(a => (
+            <button key={a}
+              style={{...s.amountBtn, ...(form.amount===a ? s.amountBtnOn : {})}}
+              onClick={() => set("amount", a)}>{a}</button>
+          ))}
+        </div>
 
-            <div style={s.amountRow}>
-              {["€50","€100","€200","Custom"].map(a => (
-                <button key={a}
-                  style={{...s.amountBtn, ...(form.amount===a ? s.amountBtnOn : {})}}
-                  onClick={() => set("amount", a)}>{a}</button>
-              ))}
-            </div>
-
-            {form.amount === "Custom" && (
-              <Input label="Custom Amount (€/month)" type="number" placeholder="e.g. 75"
-                value={form.customAmount} onChange={e => set("customAmount", e.target.value)}
-                inputMode="numeric" />
-            )}
-
-            <Divider />
-            <div style={{...s.sectionTitle, marginBottom:12}}>Bank Details</div>
-
-            <Input label="Account Name" placeholder="Name on bank account"
-              value={form.accountName} onChange={e => set("accountName", e.target.value)}
-              autoComplete="name" autoCapitalize="words" />
-            <Input label="IBAN" placeholder="IE00 XXXX 0000 0000 0000 00"
-              value={form.iban} onChange={e => set("iban", e.target.value)}
-              autoCapitalize="characters" autoCorrect="off" autoComplete="off" />
-            <Input label="BIC" placeholder="e.g. AIBKIE2D"
-              value={form.bic} onChange={e => set("bic", e.target.value)}
-              autoCapitalize="characters" autoCorrect="off" autoComplete="off" />
-
-            <Divider />
-            <div style={{...s.sectionTitle, marginBottom:12}}>Direct Debit Declarations</div>
-
-            {[
-              { key: "ddConsent1", text: "I understand the monthly payment will continue until I cancel or change it in writing." },
-              { key: "ddConsent2", text: "I will inform Imamia Centre if my bank details or membership details change." },
-              { key: "ddConsent3", text: "I consent to Imamia Centre using my details for membership administration and payment management only." },
-              { key: "ddConsent4", text: "I authorise Imamia Centre Galway to collect the above monthly amount from my account." },
-            ].map(({ key, text }) => (
-              <div key={key}>
-                <CheckItem checked={form[key]} onChange={e => set(key, e.target.checked)}>
-                  {text}
-                </CheckItem>
-                <Err k={key} />
-              </div>
-            ))}
-
-            <p style={s.secNote}>🔒 Your bank details are used solely for your standing order and will not be shared with third parties.</p>
-          </div>
+        {form.amount === "Custom" && (
+          <Input label="Custom Amount (€/month)" type="number" placeholder="e.g. 75"
+            value={form.customAmount} onChange={e => set("customAmount", e.target.value)}
+            inputMode="numeric" />
         )}
+
+        <Divider />
+        <SectionTitle>Bank Details</SectionTitle>
+
+        <Input label="Account Name" placeholder="Name on bank account"
+          value={form.accountName} onChange={e => set("accountName", e.target.value)}
+          autoComplete="name" autoCapitalize="words" />
+        <Input label="IBAN" placeholder="IE00 XXXX 0000 0000 0000 00"
+          value={form.iban} onChange={e => set("iban", e.target.value)}
+          autoCapitalize="characters" autoCorrect="off" autoComplete="off" />
+        <Input label="BIC" placeholder="e.g. AIBKIE2D"
+          value={form.bic} onChange={e => set("bic", e.target.value)}
+          autoCapitalize="characters" autoCorrect="off" autoComplete="off" />
+
+        <Divider />
+        <SectionTitle>Direct Debit Declarations</SectionTitle>
+
+        {[
+          { key: "ddConsent1", text: "I understand the monthly payment will continue until I cancel or change it in writing." },
+          { key: "ddConsent2", text: "I will inform Imamia Centre if my bank details or membership details change." },
+          { key: "ddConsent3", text: "I consent to Imamia Centre using my details for membership administration and payment management only." },
+          { key: "ddConsent4", text: "I authorise Imamia Centre Galway to collect the above monthly amount from my account." },
+        ].map(({ key, text }) => (
+          <div key={key}>
+            <CheckItem checked={form[key]} onChange={e => set(key, e.target.checked)}>
+              {text}
+            </CheckItem>
+            <Err k={key} />
+          </div>
+        ))}
+
+        <p style={s.secNote}>🔒 Your bank details are used solely for your standing order and will not be shared with third parties.</p>
 
         <Divider />
 
@@ -498,6 +484,7 @@ const s = {
   },
 
   subText: { fontSize: 14, color: "#666", marginBottom: 14, lineHeight: 1.5 },
+  ddDesc: { fontSize: 13, color: "#777", marginBottom: 14, lineHeight: 1.5 },
 
   checkBox: {
     display: "flex",
@@ -523,19 +510,6 @@ const s = {
     cursor: "pointer",
   },
   checkText: { fontSize: 15, color: "#333", lineHeight: 1.5 },
-
-  ddToggleTitle: { fontSize: 15, fontWeight: 700, color: MAROON, marginBottom: 3 },
-  ddToggleSub: { fontSize: 13, color: "#888", lineHeight: 1.4 },
-
-  ddBox: {
-    background: "#fdf7f7",
-    border: `1.5px solid #f0d0d0`,
-    borderRadius: 12,
-    padding: 18,
-    marginBottom: 16,
-    marginTop: 4,
-  },
-  ddDesc: { fontSize: 13, color: "#777", marginBottom: 14, lineHeight: 1.5 },
 
   amountRow: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 },
   amountBtn: {
