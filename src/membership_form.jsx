@@ -34,6 +34,7 @@ function CheckItem({ checked, onChange, children }) {
 
 export default function MembershipForm() {
   const [submitted, setSubmitted] = useState(false);
+  const [membershipId, setMembershipId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [form, setForm] = useState({
@@ -46,6 +47,17 @@ export default function MembershipForm() {
   const [errors, setErrors] = useState({});
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const generateMembershipId = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let id = "ICG-";
+    for (let i = 0; i < 5; i++) {
+      id += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return id;
+  };
+
+
 
   const toggleInterest = (id) => set("interests",
     form.interests.includes(id)
@@ -109,9 +121,12 @@ export default function MembershipForm() {
       "Account Name": form.accountName || "—",
       "IBAN": form.iban || "—",
       "BIC": form.bic || "—",
+      "Membership ID": newMembershipId,
       "_subject": `New Membership Registration — ${form.fullName}`,
       "_replyto": form.email,
     };
+
+    const newMembershipId = generateMembershipId();
 
     try {
       const res = await fetch(FORMSPREE_ENDPOINT, {
@@ -120,6 +135,7 @@ export default function MembershipForm() {
         body: JSON.stringify(payload),
       });
       if (res.ok) {
+        setMembershipId(newMembershipId);
         setSubmitted(true);
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
@@ -152,6 +168,11 @@ export default function MembershipForm() {
           <div style={s.successIcon}>✓</div>
           <h2 style={s.successH2}>Registration Received</h2>
           <p style={s.successP}>JazakAllah Khair, <strong>{form.fullName}</strong>. Your membership application has been submitted successfully.</p>
+          <div style={s.memberIdBox}>
+            <div style={s.memberIdLabel}>Your Membership ID</div>
+            <div style={s.memberId}>{membershipId}</div>
+            <div style={s.memberIdNote}>Please save this ID for your records.</div>
+          </div>
           <p style={s.successSub}>We will be in touch shortly. Ya Ali Madad 🖤</p>
         </div>
       </div>
@@ -566,6 +587,34 @@ const s = {
     cursor: "not-allowed",
   },
 
+  memberIdBox: {
+    background: "#fdf7f7",
+    border: "2px solid #8B0000",
+    borderRadius: 12,
+    padding: "16px 24px",
+    margin: "16px 0",
+    textAlign: "center",
+  },
+  memberIdLabel: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#888",
+    textTransform: "uppercase",
+    letterSpacing: 2,
+    marginBottom: 8,
+  },
+  memberId: {
+    fontSize: 28,
+    fontWeight: 700,
+    color: "#8B0000",
+    letterSpacing: 3,
+    fontFamily: "monospace",
+    marginBottom: 6,
+  },
+  memberIdNote: {
+    fontSize: 12,
+    color: "#aaa",
+  },
   successIcon: {
     width: 72,
     height: 72,
