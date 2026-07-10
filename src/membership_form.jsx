@@ -126,7 +126,7 @@ export default function MembershipForm() {
       "_replyto": form.email,
     };
 
-    const newMembershipId = generateMembershipId();
+    var newMembershipId = generateMembershipId();
 
     try {
       const res = await fetch(FORMSPREE_ENDPOINT, {
