@@ -96,6 +96,8 @@ export default function MembershipForm() {
     setSubmitting(true);
     setSubmitError("");
 
+    var newMembershipId = generateMembershipId();  // ✅ moved to top
+
     const childrenText = form.children.length > 0
       ? form.children.map((c, i) => `Child ${i+1}: ${c.name||"—"}, Age: ${c.age||"—"}`).join(" | ")
       : "None";
@@ -107,6 +109,7 @@ export default function MembershipForm() {
     const finalAmount = form.amount === "Custom" ? `€${form.customAmount}` : form.amount;
 
     const payload = {
+      "Membership ID": newMembershipId,  // ✅ now defined
       "Full Name": form.fullName,
       "Age": form.age || "—",
       "Occupation": form.occupation || "—",
@@ -121,12 +124,9 @@ export default function MembershipForm() {
       "Account Name": form.accountName || "—",
       "IBAN": form.iban || "—",
       "BIC": form.bic || "—",
-      "Membership ID": newMembershipId,
       "_subject": `New Membership Registration — ${form.fullName}`,
       "_replyto": form.email,
     };
-
-    var newMembershipId = generateMembershipId();
 
     try {
       const res = await fetch(FORMSPREE_ENDPOINT, {
