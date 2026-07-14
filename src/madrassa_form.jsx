@@ -55,7 +55,7 @@ export default function MadrassaForm() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [form, setForm] = useState({
-    name: "", mobile: "", email: "",
+    name: "", membershipId: "", mobile: "", email: "",
     contactPref: "",
     childCount: "",
     ageGroups: [],
@@ -103,6 +103,7 @@ export default function MadrassaForm() {
 
     const payload = {
       "Parent / Guardian Name": form.name,
+      "ICG Membership ID": form.membershipId || "Not provided",
       "Mobile": form.mobile,
       "Email": form.email,
       "Preferred Contact": form.contactPref,
@@ -161,12 +162,15 @@ export default function MadrassaForm() {
       <GlobalStyles />
       <Header />
 
-      {/* Mandatory notice */}
+      {/* Mandatory notice — bright and prominent */}
       <div style={s.noticeBox}>
-        <span style={s.noticeIcon}>📌</span>
-        <span style={s.noticeText}>
-          <strong>Important:</strong> For this Summer Madrassa, it is mandatory for at least one parent or guardian to be present during all classes.
-        </span>
+        <div style={s.noticeIconWrap}>⚠️</div>
+        <div>
+          <div style={s.noticeTitle}>Mandatory Requirement</div>
+          <div style={s.noticeText}>
+            At least one parent or guardian <strong>must be present</strong> during all classes for this Summer Madrassa.
+          </div>
+        </div>
       </div>
 
       <div style={s.card}>
@@ -177,6 +181,10 @@ export default function MadrassaForm() {
           value={form.name} onChange={e => set("name", e.target.value)}
           autoComplete="name" autoCapitalize="words" />
         <Err k="name" />
+
+        <Input label="ICG Membership ID" placeholder="e.g. ICG-7X4K2 (if you have one)"
+          value={form.membershipId} onChange={e => set("membershipId", e.target.value)}
+          autoCapitalize="characters" autoCorrect="off" autoComplete="off" />
 
         <Input label="Mobile" required type="tel" placeholder="+353 87 000 0000"
           value={form.mobile} onChange={e => set("mobile", e.target.value)}
@@ -312,9 +320,22 @@ const s = {
   headerTitle: { fontSize: 16, fontWeight: 700, color: "white", marginBottom: 1 },
   headerSub: { fontSize: 13, color: "rgba(255,255,255,0.85)" },
 
-  noticeBox: { width: "100%", maxWidth: 600, background: "#fffbea", border: "1.5px solid #f0c040", borderRadius: 10, padding: "14px 16px", display: "flex", alignItems: "flex-start", gap: 10, marginTop: 12 },
-  noticeIcon: { fontSize: 18, flexShrink: 0, marginTop: 1 },
-  noticeText: { fontSize: 14, color: "#5a4000", lineHeight: 1.5 },
+  noticeBox: {
+    width: "100%",
+    maxWidth: 600,
+    background: "#FF6B00",
+    border: "none",
+    borderRadius: 10,
+    padding: "16px 18px",
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 12,
+    marginTop: 12,
+    boxShadow: "0 4px 12px rgba(255,107,0,0.35)",
+  },
+  noticeIconWrap: { fontSize: 24, flexShrink: 0, marginTop: 1 },
+  noticeTitle: { fontSize: 14, fontWeight: 800, color: "white", marginBottom: 4, letterSpacing: 0.3, textTransform: "uppercase" },
+  noticeText: { fontSize: 14, color: "white", lineHeight: 1.55 },
 
   card: { width: "100%", maxWidth: 600, background: "white", padding: "24px 18px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", marginTop: 12, borderRadius: 12, marginLeft: 12, marginRight: 12 },
 
@@ -327,7 +348,6 @@ const s = {
   input: { border: `1.5px solid ${BORDER}`, borderRadius: 10, padding: "14px 14px", fontSize: 16, color: "#1a1a1a", background: "#fafafa", width: "100%", WebkitAppearance: "none", appearance: "none", outline: "none" },
 
   errMsg: { fontSize: 13, color: "#c0392b", marginTop: -8, marginBottom: 12 },
-
   subText: { fontSize: 14, color: "#666", marginBottom: 12, lineHeight: 1.5 },
 
   countRow: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 4 },
@@ -343,7 +363,6 @@ const s = {
   contributionNote: { fontSize: 13, color: "#666", background: "#f9f9f9", border: `1px solid #eee`, borderRadius: 8, padding: "10px 14px", marginBottom: 12, lineHeight: 1.5 },
 
   divider: { height: 1, background: "#f0f0f0", margin: "20px 0" },
-
   errorBox: { background: "#fee", border: "1px solid #fcc", borderRadius: 10, padding: "14px 16px", fontSize: 14, color: "#c0392b", marginBottom: 16, lineHeight: 1.5 },
 
   submitBtn: { background: `linear-gradient(135deg, ${MAROON_DARK}, #8B1A1A)`, border: "none", color: "white", borderRadius: 12, padding: "16px 32px", fontSize: 17, fontWeight: 700, cursor: "pointer", width: "100%", marginTop: 8, WebkitAppearance: "none", letterSpacing: 0.3 },
